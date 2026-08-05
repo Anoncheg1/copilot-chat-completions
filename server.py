@@ -7,6 +7,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Version: 0.1
 
+# Third-Party Components:
+# This file / project utilizes an SDK provided under the MIT License:
+#     - github/copilot-sdk (Copyright (C) Copyright GitHub, Inc.)
+#     See the 'LICENSE-MIT' file in the root directory for full MIT terms.
+
 # Doc: https://github.com/github/copilot-sdk/blob/main/python/README.md
 # COPILOT_CLI_PATH
 # Commentary:
