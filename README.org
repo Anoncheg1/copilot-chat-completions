@@ -1,5 +1,10 @@
 * copilot-chat-completions is a script to provide good old OpenAI-like REST stateless chat user interface to LLMs
 version: 0.1
+* Dependencies
+- *GitHub Copilot CLI* - proprietary binary executable
+- https://github.com/github/copilot-sdk - MIT Licensed
+- Python 3.14 should be with libffi-dev
+-
 * Usage
 To run:
 : PYTHONPATH="/path-to/copilot-sdk/python" uvicorn server:app --host 127.0.0.1 --port 8000 --reload
