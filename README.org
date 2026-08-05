@@ -4,7 +4,28 @@ version: 0.1
 - *GitHub Copilot CLI* - proprietary binary executable
 - https://github.com/github/copilot-sdk - MIT Licensed
 - Python 3.14 should be with libffi-dev
--
+
+* Installation of copilot-sdk
+#+begin_src bash :eval no :exports code :results none
+git clone --branch main --single-branch https://github.com/github/copilot-sdk.git
+git tag
+git checkout v1.0.8
+#+end_src
+
+#+begin_src bash :eval no :exports code :results none
+TARGET_FILE="copilot-sdk/python/pyproject.toml"
+# Extract strings inside the dependencies list, strip quotes, and write to requirements.txt
+grep -A 5 "dependencies\s*=" "$TARGET_FILE" | \
+  grep -o '"[^"]*"' | \
+  tr -d '"' > requirements.txt
+
+echo "Extracted dependencies:"
+cat requirements.txt
+
+# Install dependencies using pip
+pip3.14 install -r requirements.txt
+```
+
 * Usage
 To run:
 : PYTHONPATH="/path-to/copilot-sdk/python" uvicorn server:app --host 127.0.0.1 --port 8000 --reload
