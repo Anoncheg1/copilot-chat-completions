@@ -22,7 +22,7 @@
 # import sys
 # SDK_PATH = "/home/rtorrent/copilot-sdk/python"
 # sys.path.insert(0, SDK_PATH)
-
+import os
 import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, BackgroundTasks
@@ -46,6 +46,10 @@ async def create_new_session():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global copilot_client, copilot_session
+    if os.getenv("TESTING") == "1":
+        yield
+        return
+    # else:
     #  use logged-in user for authentication: use_logged_in_user=True, github_token is not provided here
     copilot_client = CopilotClient(
         connection=RuntimeConnection.for_stdio(

@@ -24,7 +24,7 @@ cat requirements.txt
 
 # Install dependencies using pip
 pip3.14 install -r requirements.txt
-```
+#+end_src
 
 * Usage
 To run:
