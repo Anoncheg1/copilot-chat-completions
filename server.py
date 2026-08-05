@@ -47,10 +47,8 @@ async def create_new_session():
 async def lifespan(app: FastAPI):
     global copilot_client, copilot_session
     if os.getenv("TESTING") == "1":
-        yield
         return
-    # else:
-    #  use logged-in user for authentication: use_logged_in_user=True, github_token is not provided here
+    # else: use logged-in user for authentication: use_logged_in_user=True, github_token is not provided here
     copilot_client = CopilotClient(
         connection=RuntimeConnection.for_stdio(
             path="node",
