@@ -94,19 +94,24 @@ async def chat_completions(request: dict, background_tasks: BackgroundTasks):
     print("formatted_prompt", formatted_prompt)
 
     # Send as one rapid payload and wait for the response
-    response = await current_session.send_and_wait(formatted_prompt, timeout = SEND_AND_WAIT)
     try:
         # Attempt to send with the current session
-        response = await current_session.send_and_wait(formatted_prompt)
+        response = await current_session.send_and_wait(formatted_prompt, timeout=SEND_AND_WAIT)
 
-    except (JsonRpcError, ProcessExitedError): # Connection lost
-        # Check if it's a missing/stale session error
-        print("--- Stale session detected, recreating session and retrying... ---")
-        copilot_session = await create_new_session()
-        current_session = copilot_session
-        # Retry request with the brand new session
-        response = await current_session.send_and_wait(formatted_prompt)
+    except (JsonRpcError, ProcessExitedError, Exception) as e:
+        # Catch JsonRpcError (which houses the -32603 session not found error)
+        # or any other unexpected connection/process drops.
+        print(f"--- Session error detected ({e}), recreating session and retrying... ---")
+        try:
+            # 1. Re-create the session
+            current_session = await create_new_session()
 
+            # 2. Retry request with the brand new session
+            response = await current_session.send_and_wait(formatted_prompt, timeout=SEND_AND_WAIT)
+
+        except Exception as retry_err:
+            print(f"--- Retry failed: {retry_err} ---")
+            raise retry_err
 
     assistant_reply = response.data.content if response and response.data else "No response generated."
 
