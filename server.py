@@ -7,18 +7,31 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Version: 0.1
 
-# Third-Party Components:
+# License Of Third-Party Components:
 # This file / project utilizes an SDK provided under the MIT License:
 #     - github/copilot-sdk (Copyright (C) Copyright GitHub, Inc.)
 #     See the 'LICENSE-MIT' file in the root directory for full MIT terms.
 
-# Doc: https://github.com/github/copilot-sdk/blob/main/python/README.md
-# COPILOT_CLI_PATH
-# Commentary:
-# To run: PYTHONPATH="/path-to/copilot-sdk/python" uvicorn server:app --host 127.0.0.1 --port 8000 --reload
-#
-# TODO: use ‎CopilotClient.ping to keep connection
-# OLD: replaced with PYTHONPATH=
+### Commentary:
+
+# Usage: PYTHONPATH="/path-to/copilot-sdk/python" uvicorn server:app --host 127.0.0.1 --port 8000 --reload
+
+# Documentation of copilot-sdk: https://github.com/github/copilot-sdk/blob/main/python/README.md
+
+### How this works:
+# It crete connection to copilot CLI with help of copilot-sdk as "client" and "session"
+# When receiving request we save it and check if request is same as saved, then
+#  we send() only the last message. If messages is not equeal to saved, we
+#  create new session.
+# We compare -2 of messages without new user request and without previous
+#  answer, because previous answer frequently changed by client to own format.
+# If session expired we try to reconnect once.
+
+### TODO:
+# - use ‎CopilotClient.ping to keep connection
+# - COPILOT_CLI_PATH
+
+### OLD: replaced with PYTHONPATH=
 # import sys
 # SDK_PATH = "/home/rtorrent/copilot-sdk/python"
 # sys.path.insert(0, SDK_PATH)
@@ -33,6 +46,7 @@ from copilot._jsonrpc import JsonRpcError, ProcessExitedError
 SEND_AND_WAIT = 300.0 # secs
 copilot_client = None
 copilot_session = None
+messages_saved = None # string or list
 
 async def create_new_session():
     return await copilot_client.create_session(
@@ -46,9 +60,7 @@ async def create_new_session():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global copilot_client, copilot_session
-    if os.getenv("TESTING") == "1":
-        return
-    # else: use logged-in user for authentication: use_logged_in_user=True, github_token is not provided here
+    #  use logged-in user for authentication: use_logged_in_user=True, github_token is not provided here
     copilot_client = CopilotClient(
         connection=RuntimeConnection.for_stdio(
             path="node",
@@ -58,7 +70,7 @@ async def lifespan(app: FastAPI):
     )
     await copilot_client.start()
     copilot_session = await create_new_session()
-    print("--- Copilot Client & Session Initialized ---")
+    print("--- lifespan: Copilot Client & Session Initialized ---")
 
     yield
 
@@ -67,12 +79,13 @@ async def lifespan(app: FastAPI):
         except: pass
     if copilot_client:
         await copilot_client.stop()
-        print("--- Copilot Client Stopped ---")
+        print("--- lifespan: Copilot Client Stopped ---")
 
 app = FastAPI(lifespan=lifespan)
 
 async def rotate_session(old_session):
-    global copilot_session
+    global copilot_session, messages_saved
+    messages_saved = None
     try:
         await old_session.disconnect()
     except:
@@ -82,23 +95,39 @@ async def rotate_session(old_session):
 
 @app.post("/v1/chat/completions")
 async def chat_completions(request: dict, background_tasks: BackgroundTasks):
-    global copilot_session
+    global copilot_session, messages_saved
 
     messages = request.get("messages", [])
-    current_session = copilot_session
+    messages_content = [m.get("content", "") for m in messages]
+
+    if len(messages_content) > 2 and messages_content[:-2] == messages_saved:
+        # same session: use only last
+        print("chat_completions: Same session")
+        messages = [messages[-1]]
+        # print("wtf1")
+
+
+    # if old session but with new messages
+    elif messages_saved and len(messages_content) > 2 and messages_content[:-2] != messages_saved:
+        print("--- Messages changed we re-create session ---")
+        await rotate_session(copilot_session)
+        # copilot_session = await create_new_session() # initialized
+        # print("wtf2")
+    # else:     # new session
 
     # Flatten all incoming messages into a single chat-formatted prompt string
     formatted_prompt = "\n".join([
         f"{msg.get('role', 'user').capitalize()}: {msg.get('content', '')}"
         for msg in messages
     ])
-    print("messages", messages)
+
+    # print("messages", messages)
     print("formatted_prompt", formatted_prompt)
 
     # Send as one rapid payload and wait for the response
     try:
         # Attempt to send with the current session
-        response = await current_session.send_and_wait(formatted_prompt, timeout=SEND_AND_WAIT)
+        response = await copilot_session.send_and_wait(formatted_prompt, timeout=SEND_AND_WAIT)
 
     except (JsonRpcError, ProcessExitedError, Exception) as e:
         # Catch JsonRpcError (which houses the -32603 session not found error)
@@ -106,10 +135,10 @@ async def chat_completions(request: dict, background_tasks: BackgroundTasks):
         print(f"--- Session error detected ({e}), recreating session and retrying... ---")
         try:
             # 1. Re-create the session
-            current_session = await create_new_session()
+            copilot_session = await create_new_session()
 
             # 2. Retry request with the brand new session
-            response = await current_session.send_and_wait(formatted_prompt, timeout=SEND_AND_WAIT)
+            response = await copilot_session.send_and_wait(formatted_prompt, timeout=SEND_AND_WAIT)
 
         except Exception as retry_err:
             print(f"--- Retry failed: {retry_err} ---")
@@ -117,8 +146,12 @@ async def chat_completions(request: dict, background_tasks: BackgroundTasks):
 
     assistant_reply = response.data.content if response and response.data else "No response generated."
 
-    # Rotate session asynchronously in the background
-    background_tasks.add_task(rotate_session, current_session)
+    # old:
+    #     # Rotate session asynchronously in the background
+    #     background_tasks.add_task(rotate_session, copilot_session)
+
+    # save request
+    messages_saved = messages_content
 
     return JSONResponse(content={
         "id": "chatcmpl-copilot",
