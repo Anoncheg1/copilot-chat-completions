@@ -4,6 +4,10 @@ version: 0.1
 - *GitHub Copilot CLI* - proprietary binary executable
 - https://github.com/github/copilot-sdk - MIT Licensed
 - Python 3.14 should be with libffi-dev
+* Files
+- server.py - only required script
+- test_server.py - test that run with pytest
+- requirements.txt - dependencies for test_server.py
 
 * Installation of copilot-sdk
 #+begin_src bash :eval no :exports code :results none
