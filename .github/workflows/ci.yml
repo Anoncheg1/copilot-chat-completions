@@ -34,16 +34,16 @@ jobs:
             tr -d '"' > requirements-cop.txt
           cat requirements-cop.txt
 
-      - name: Extract copilot-sdk test(dev) dependencies -> requirements-cop-dev.txt
-        env:
-          TARGET_FILE: ${{ github.workspace }}/copilot-sdk/python/pyproject.toml # set to your file
-        shell: bash
-        run: |
-          # Extract copilot-sdk test(dev) dependencies -> requirements-cop-dev.txt
-          grep -A 9 "dev\s*=" "$TARGET_FILE" | \
-            grep -o '"[^"]*"' | \
-            tr -d '"' > requirements-cop-dev.txt
-          cat requirements-cop-dev.txt
+      # - name: Extract copilot-sdk test(dev) dependencies -> requirements-cop-dev.txt
+      #   env:
+      #     TARGET_FILE: ${{ github.workspace }}/copilot-sdk/python/pyproject.toml # set to your file
+      #   shell: bash
+      #   run: |
+      #     # Extract copilot-sdk test(dev) dependencies -> requirements-cop-dev.txt
+      #     grep -A 9 "dev\s*=" "$TARGET_FILE" | \
+      #       grep -o '"[^"]*"' | \
+      #       tr -d '"' > requirements-cop-dev.txt
+      #     cat requirements-cop-dev.txt
 
 
       - uses: actions/setup-python@v7
@@ -51,7 +51,7 @@ jobs:
           python-version: 3.14
 
       - name: Install deps copilot-sdk deps and deps for pytest.
-        run: python -m pip install --upgrade pip && python -m pip install -r requirements-cop.txt -r requirements-cop-dev.txt -r requirements-dev.txt
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements-cop.txt -r requirements-dev.txt # -r requirements-cop-dev.txt
 
       - name: Prepare tests
         run: |
