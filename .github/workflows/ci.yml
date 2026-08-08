@@ -51,7 +51,7 @@ jobs:
           python-version: 3.14
 
       - name: Install deps copilot-sdk deps and deps for pytest.
-        run: python -m pip install --upgrade pip && python -m pip install -r requirements-cop.txt -r requirements-dev.txt
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements-cop.txt -r requirements-cop-dev.txt -r requirements-dev.txt
 
       - name: Prepare tests
         run: |
