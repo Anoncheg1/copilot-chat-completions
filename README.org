@@ -19,7 +19,7 @@ You unly need `server.py` here and follow instructions for installation of copil
 * Installation on copilot binary from Microsoft
 Ways:
 
-1) from npm:
+Way 1) from npm:
 #+begin_src bash :eval no :exports code :results none
 curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
 apt install nodejs -y
@@ -27,9 +27,9 @@ node -v
 npm -v
 npm install -g @github/copilot
 #+end_src
-2) from github: ~curl -fsSL https://gh.io/copilot-install | bash~
+Way 2) from github: ~curl -fsSL https://gh.io/copilot-install | bash~
 
-3) from brew
+Way 3) from brew
 #+begin_src bash :eval no :exports code :results none
 sudo apt update
 sudo apt install build-essential procps curl file git
