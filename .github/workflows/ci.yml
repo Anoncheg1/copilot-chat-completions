@@ -19,7 +19,7 @@ jobs:
       - name: Install deps
         run: pip install -r requirements-dev.txt
 
-      - name: Prepare tests
+      - name: Prepare tests1
         run: |
           set -euo pipefail
           FILEA="server.py"
@@ -27,6 +27,13 @@ jobs:
 
           # Step 1: mark matching lines with temporary comment
           sed -i 's/^from comilot.*/# REPLACED_CONTENT/' "$FILEA"
+
+      - name: Prepare tests2
+        run: |
+          set -euo pipefail
+          FILEA="server.py"
+          FILEB="patch-for-test-server.py"
+
           # Step 2: keep only the first instance of the comment, delete duplicates
           awk '$0 == "# REPLACED_CONTENT" { if (!found) { found=1; print } next } { print }' "$FILEA" > "$FILEA.tmp" && mv "$FILEA.tmp" "$FILEA"
           # Step 3: replace the single remaining comment with contents of fileB
