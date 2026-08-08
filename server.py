@@ -43,7 +43,8 @@ from fastapi.responses import JSONResponse
 from copilot import CopilotClient, RuntimeConnection
 from copilot.session import PermissionHandler
 from copilot._jsonrpc import JsonRpcError, ProcessExitedError
-SEND_AND_WAIT = 300.0 # secs
+SESSION_TIMEOUT = 1500 # 25 min
+SEND_AND_WAIT_TIMEOUT = 300.0 # secs
 copilot_client = None
 copilot_session = None
 messages_saved = None # string or list
@@ -66,7 +67,7 @@ async def lifespan(app: FastAPI):
             path="node",
             args=["/usr/lib/node_modules/@github/copilot/npm-loader.js"]
         ),
-        session_idle_timeout_seconds=300
+        session_idle_timeout_seconds=SESSION_TIMEOUT
     )
     await copilot_client.start()
     copilot_session = await create_new_session()
@@ -99,6 +100,8 @@ async def chat_completions(request: dict, background_tasks: BackgroundTasks):
 
     messages = request.get("messages", [])
     messages_content = [m.get("content", "") for m in messages]
+    messages_content = ["".join(m.split()) for m in messages_content] # remove spaces and new lines
+
 
     if len(messages_content) > 2 and messages_content[:-2] == messages_saved:
         # same session: use only last
@@ -110,7 +113,7 @@ async def chat_completions(request: dict, background_tasks: BackgroundTasks):
     # if old session but with new messages
     elif messages_saved and len(messages_content) > 2 and messages_content[:-2] != messages_saved:
         print("--- Messages changed we re-create session ---")
-        await rotate_session(copilot_session)
+        await rotate_session(copilot_session) # disconnect and connect
         # copilot_session = await create_new_session() # initialized
         # print("wtf2")
     # else:     # new session
@@ -127,7 +130,7 @@ async def chat_completions(request: dict, background_tasks: BackgroundTasks):
     # Send as one rapid payload and wait for the response
     try:
         # Attempt to send with the current session
-        response = await copilot_session.send_and_wait(formatted_prompt, timeout=SEND_AND_WAIT)
+        response = await copilot_session.send_and_wait(formatted_prompt, timeout=SEND_AND_WAIT_TIMEOUT)
 
     except (JsonRpcError, ProcessExitedError, Exception) as e:
         # Catch JsonRpcError (which houses the -32603 session not found error)
@@ -138,7 +141,7 @@ async def chat_completions(request: dict, background_tasks: BackgroundTasks):
             copilot_session = await create_new_session()
 
             # 2. Retry request with the brand new session
-            response = await copilot_session.send_and_wait(formatted_prompt, timeout=SEND_AND_WAIT)
+            response = await copilot_session.send_and_wait(formatted_prompt, timeout=SEND_AND_WAIT_TIMEOUT)
 
         except Exception as retry_err:
             print(f"--- Retry failed: {retry_err} ---")
