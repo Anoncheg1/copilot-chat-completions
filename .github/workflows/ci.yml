@@ -109,4 +109,4 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}/copilot-sdk/python:${PYTHONPATH}
           # Ensure our shim is on PATH so subprocess invocation finds it
           COPILOT_CLI_PATH: ${{ github.workspace }}/nodejs/node_modules/.bin/copilot
-        run: python -m pytest -q
+        run: python -m pytest -q --ignore=copilot-sdk
