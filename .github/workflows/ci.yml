@@ -12,6 +12,17 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Checkout copilot-sdk v1.0.8
+        uses: actions/checkout@v7
+        with:
+          repository: 'github/copilot-sdk'
+          ref: 'v1.0.8'
+          path: 'copilot-sdk'
+          fetch-depth: 0
+
+      - name: prepare copilot-sdk
+        run: echo "PYTHONPATH=${{ github.workspace }}/copilot-sdk/python:${PYTHONPATH}" >> $GITHUB_ENV
+
       - uses: actions/setup-python@v7
         with:
           python-version: 3.14
@@ -19,27 +30,15 @@ jobs:
       - name: Install deps
         run: pip install -r requirements-dev.txt
 
-      - name: Prepare tests1
+      - name: Prepare tests
         run: |
           FILEA="server.py"
           FILEB="patch-for-test-server.py"
 
           # Step 1: mark matching lines with temporary comment
           sed -i 's/^from copilot.*/# REPLACED_CONTENT/' "$FILEA"
-
-      - name: Prepare tests2
-        run: |
-          FILEA="server.py"
-          FILEB="patch-for-test-server.py"
-
           # Step 2: keep only the first instance of the comment, delete duplicates
           awk '$0 == "# REPLACED_CONTENT" { if (!found) { found=1; print } next } { print }' "$FILEA" > "$FILEA.tmp" && mv "$FILEA.tmp" "$FILEA"
-
-      - name: Prepare tests3
-        run: |
-          FILEA="server.py"
-          FILEB="patch-for-test-server.py"
-
           # Step 3: replace the single remaining comment with contents of fileB
           awk -v f="$FILEB" '/# REPLACED_CONTENT/ { system("cat " f); next } { print }' "$FILEA" >tmp && mv tmp "$FILEA"
 
