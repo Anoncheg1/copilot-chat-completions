@@ -5,7 +5,7 @@
 # Created: 2026-08-05
 # License: AGPLv3
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Version: 0.1
+# Version: 0.2
 
 # License Of Third-Party Components:
 # This file / project utilizes an SDK provided under the MIT License:

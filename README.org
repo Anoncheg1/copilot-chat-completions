@@ -2,7 +2,7 @@
 You unly need `server.py` here and follow instructions for installation of copilot and copilot-sdk below.
 
 
-*version: 0.1*
+*version: 0.2*
 
 * Dependencies
 - *GitHub Copilot CLI* - proprietary binary executable
