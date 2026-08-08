@@ -23,11 +23,12 @@ jobs:
       # - name: prepare copilot-sdk
       #   run: echo "PYTHONPATH=${{ github.workspace }}/copilot-sdk/python:${PYTHONPATH}" >> $GITHUB_ENV
 
-      - name: extract copilot-sdk1 dependencies -> requirements.txt
+      - name: Extract copilot-sdk dependencies -> requirements.txt
         env:
           TARGET_FILE: ${{ github.workspace }}/copilot-sdk/python/pyproject.toml # set to your file
         shell: bash
         run: |
+          # Extract copilot-sdk dependencies -> requirements.txt
           grep -A 5 "dependencies\s*=" "$TARGET_FILE" | \
             grep -o '"[^"]*"' | \
             tr -d '"' > requirements.txt
@@ -54,6 +55,7 @@ jobs:
 
       - name: Prepare CLI shim to avoid npm install
         run: |
+          # Prepare CLI shim to avoid npm install
           set -e
           # create several plausible locations the test harness might look for
           SHIM_BIN_DIR="${{ github.workspace }}/nodejs/node_modules/.bin"
@@ -88,6 +90,7 @@ jobs:
 
       - name: Debug - search for harness helper (optional)
         run: |
+          # Debug - search for harness helper (optional)
           # Print locations if the repository defines a test harness helper
           grep -R --line-number "get_cli_path_for_tests" || true
           grep -R --line-number "CLI not found for tests" || true
