@@ -65,48 +65,7 @@ jobs:
           # Step 3: replace the single remaining comment with contents of fileB
           awk -v f="$FILEB" '/# REPLACED_CONTENT/ { system("cat " f); next } { print }' "$FILEA" >tmp && mv tmp "$FILEA"
 
-      - name: Create minimal CLI shim and set COPILOT_CLI_PATH
-        run: |
-          set -euo pipefail
-          SHIM_DIR="${{ github.workspace }}/nodejs/node_modules/.bin"
-          mkdir -p "$SHIM_DIR"
-          SHIM="${SHIM_DIR}/copilot"
-          cat > "$SHIM" <<'SH'
-          #!/usr/bin/env bash
-          # minimal copilot CLI shim to satisfy test harness existence check.
-          cmd="$1"
-          case "$cmd" in
-            --version|-v|version)
-              echo "copilot-cli-shim 0.0.0"
-              exit 0
-              ;;
-            # optionally log calls for debugging
-            --log-invocation)
-              echo "$0 $@" >> /tmp/copilot-shim-invocations.log
-              echo "{}"
-              exit 0
-              ;;
-            *)
-              # Default: print an empty JSON object so tests that parse JSON won't crash.
-              printf '{"result": null}\n'
-              exit 0
-              ;;
-          esac
-          SH
-          chmod +x "$SHIM"
-          echo "Created CLI shim at $SHIM"
-        shell: bash
-
-      - name: Debug - search for harness helper (optional)
-        run: |
-          # Debug - search for harness helper (optional)
-          # Print locations if the repository defines a test harness helper
-          grep -R --line-number "get_cli_path_for_tests" || true
-          grep -R --line-number "CLI not found for tests" || true
-
       - name: Run tests
         env:
           PYTHONPATH: ${{ github.workspace }}/copilot-sdk/python:${PYTHONPATH}
-          # Ensure our shim is on PATH so subprocess invocation finds it
-          COPILOT_CLI_PATH: ${{ github.workspace }}/nodejs/node_modules/.bin/copilot
         run: python -m pytest -q --ignore=copilot-sdk
