@@ -1,5 +1,8 @@
 * copilot-chat-completions is a script to provide good old OpenAI-like REST stateless chat user interface to LLMs
-version: 0.1
+You unly need `server.py` here and follow instructions for installation of copilot and copilot-sdk below.
+
+
+*version: 0.1*
 
 * Dependencies
 - *GitHub Copilot CLI* - proprietary binary executable
@@ -9,7 +12,34 @@ version: 0.1
 * Files
 - server.py - only required script
 - test_server.py - test that run with pytest
-- requirements.txt - dependencies for test_server.py
+- test_server_no_copilot.py - integration test that run with pytest
+- requirements-dev.txt - dependencies for test_server.py
+- patch-for-test-server.py - helping file for test_server.py
+
+* Installation on copilot binary from Microsoft
+Ways:
+
+1) from npm:
+#+begin_src bash :eval no :exports code :results none
+curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+apt install nodejs -y
+node -v
+npm -v
+npm install -g @github/copilot
+#+end_src
+2) from github: ~curl -fsSL https://gh.io/copilot-install | bash~
+
+3) from brew
+#+begin_src bash :eval no :exports code :results none
+sudo apt update
+sudo apt install build-essential procps curl file git
+NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+# Add Homebrew to your PATH
+echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+brew install copilot-cli
+#+end_src
 
 * Installation of copilot-sdk
 #+begin_src bash :eval no :exports code :results none
