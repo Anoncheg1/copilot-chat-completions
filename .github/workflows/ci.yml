@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
 
       - name: prepare copilot-sdk
-        run: echo "PYTHONPATH=${{ github.workspace }}/copilot-sdk/python${PYTHONPATH:+:$PYTHONPATH}" >> $GITHUB_ENV
+        run: echo PYTHONPATH=${{ github.workspace }}/copilot-sdk/python:${PYTHONPATH}" >> $GITHUB_ENV
 
       - name: extract copilot-sdk1 dependencies -> requirements.txt
         env:
