@@ -41,7 +41,7 @@ jobs:
           FILEB="patch-for-test-server.py"
 
           # Step 3: replace the single remaining comment with contents of fileB
-          sed -i '/# REPLACED_CONTENT/{r '"$FILEB"';d}' "$FILEA"
+          awk -v f="$FILEB" '/# REPLACED_CONTENT/ { system("cat " f); next } { print }' "$FILEA" >tmp && mv tmp "$FILEA"
 
       - name: Run tests
         run: pytest -q
