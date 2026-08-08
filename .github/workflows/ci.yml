@@ -21,7 +21,6 @@ jobs:
 
       - name: Prepare tests1
         run: |
-          set -euo pipefail
           FILEA="server.py"
           FILEB="patch-for-test-server.py"
 
@@ -30,7 +29,6 @@ jobs:
 
       - name: Prepare tests2
         run: |
-          set -euo pipefail
           FILEA="server.py"
           FILEB="patch-for-test-server.py"
 
