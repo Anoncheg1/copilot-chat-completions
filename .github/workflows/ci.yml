@@ -34,7 +34,7 @@ jobs:
           cat requirements.txt
 
       - name: Install copilot-sdk deps for test
-        run: pip install -r requirements-dev.txt
+        run: pip install -r requirements.txt
 
       - uses: actions/setup-python@v7
         with:
