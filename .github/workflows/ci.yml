@@ -25,7 +25,7 @@ jobs:
           FILEB="patch-for-test-server.py"
 
           # Step 1: mark matching lines with temporary comment
-          sed -i 's/^from comilot.*/# REPLACED_CONTENT/' "$FILEA"
+          sed -i 's/^from copilot.*/# REPLACED_CONTENT/' "$FILEA"
 
       - name: Prepare tests2
         run: |
