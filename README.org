@@ -16,7 +16,7 @@ You unly need `server.py` here and follow instructions for installation of copil
 - requirements-dev.txt - dependencies for test_server.py
 - patch-for-test-server.py - helping file for test_server.py
 
-* Installation on copilot binary from Microsoft
+* Installation of copilot binary from Microsoft
 Ways:
 
 Way 1) from npm:
@@ -28,6 +28,8 @@ npm -v
 npm install -g @github/copilot
 #+end_src
 Way 2) from github: ~curl -fsSL https://gh.io/copilot-install | bash~
+
+https://gh.io/copilot-install is https://raw.githubusercontent.com/github/copilot-cli/main/install.sh
 
 Way 3) from brew
 #+begin_src bash :eval no :exports code :results none
