@@ -23,6 +23,18 @@ jobs:
       - name: prepare copilot-sdk
         run: echo "PYTHONPATH=${{ github.workspace }}/copilot-sdk/python:${PYTHONPATH}" >> $GITHUB_ENV
 
+      - name: extract copilot-sdk1 dependencies -> requirements.txt
+        env:
+          TARGET_FILE: ${{ github.workspace }}/copilot-sdk/python/pyproject.toml # set to your file
+        shell: bash
+        run: |
+          grep -A 5 "dependencies\s*=" "$TARGET_FILE" | \
+            grep -o '"[^"]*"' | \
+            tr -d '"' > requirements.txt
+
+      - name: Install copilot-sdk deps for test
+        run: pip install -r requirements-dev.txt
+
       - uses: actions/setup-python@v7
         with:
           python-version: 3.14
