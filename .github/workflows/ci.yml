@@ -34,6 +34,12 @@ jobs:
 
           # Step 2: keep only the first instance of the comment, delete duplicates
           awk '$0 == "# REPLACED_CONTENT" { if (!found) { found=1; print } next } { print }' "$FILEA" > "$FILEA.tmp" && mv "$FILEA.tmp" "$FILEA"
+
+      - name: Prepare tests3
+        run: |
+          FILEA="server.py"
+          FILEB="patch-for-test-server.py"
+
           # Step 3: replace the single remaining comment with contents of fileB
           sed -i -e '/# REPLACED_CONTENT/{r '"$FILEB"'; d}' "$FILEA"
 
