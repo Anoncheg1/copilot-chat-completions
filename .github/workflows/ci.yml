@@ -33,15 +33,12 @@ jobs:
             tr -d '"' > requirements.txt
           cat requirements.txt
 
-      - name: Install copilot-sdk deps for test
-        run: pip install -r requirements.txt
-
       - uses: actions/setup-python@v7
         with:
           python-version: 3.14
 
-      - name: Install deps
-        run: pip install -r requirements-dev.txt
+      - name: Install deps copilot-sdk deps and deps for pytest.
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Prepare tests
         run: |
@@ -56,4 +53,4 @@ jobs:
           awk -v f="$FILEB" '/# REPLACED_CONTENT/ { system("cat " f); next } { print }' "$FILEA" >tmp && mv tmp "$FILEA"
 
       - name: Run tests
-        run: PYTHONPATH=${{ github.workspace }}/copilot-sdk/python:${PYTHONPATH} pytest -q
+        run: PYTHONPATH=${{ github.workspace }}/copilot-sdk/python:${PYTHONPATH} python -m pytest -q
