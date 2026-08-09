@@ -46,7 +46,7 @@ import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.responses import JSONResponse
-from copilot import CopilotClient, RuntimeConnection
+from copilot import CopilotClient, RuntimeConnection, StopError
 from copilot.session import PermissionHandler
 from copilot._jsonrpc import JsonRpcError, ProcessExitedError
 SESSION_TIMEOUT = 1500 # 25 min
@@ -70,24 +70,27 @@ async def lifespan(app: FastAPI):
 
     # use logged-in user for authentication: use_logged_in_user=True, github_token is not provided here
     # Use CopilotClient's async context manager for automatic start/stop/cleanup
-    async with CopilotClient(
-        connection=RuntimeConnection.for_stdio(
-            path="node",
-            args=["/usr/lib/node_modules/@github/copilot/npm-loader.js"]
-        ),
-        session_idle_timeout_seconds=SESSION_TIMEOUT
-    ) as client:
-        copilot_client = client
-        # create an initial session (kept for compatibility with existing logic)
-        copilot_session = await create_new_session()
-        print("--- lifespan: Copilot Client & Session Initialized ---")
-        try:
-            yield
-        finally:
-            # clear references; the CopilotClient context manager ensures proper stop
-            copilot_session = None
-            copilot_client = None
-            print("--- lifespan: Copilot Client Stopped ---")
+    try:
+        async with CopilotClient(
+            connection=RuntimeConnection.for_stdio(
+                path="node",
+                args=["/usr/lib/node_modules/@github/copilot/npm-loader.js"]
+            ),
+            session_idle_timeout_seconds=SESSION_TIMEOUT
+        ) as client:
+            copilot_client = client
+            # create an initial session (kept for compatibility with existing logic)
+            copilot_session = await create_new_session()
+            print("--- lifespan: Copilot Client & Session Initialized ---")
+            try:
+                yield
+            finally:
+                # clear references; the CopilotClient context manager ensures proper stop
+                copilot_session = None
+                copilot_client = None
+                print("--- lifespan: Copilot Client Stopped ---")
+    except* StopError as e:
+        pass
 
 app = FastAPI(lifespan=lifespan)
 
