@@ -29,7 +29,13 @@
 
 ### TODO:
 # - use ‎CopilotClient.ping to keep connection
-# - COPILOT_CLI_PATH
+# - hardcoded "/usr/lib/node_modules/@github/copilot/npm-loader.js". Instead of
+#   hardcoding path="node" and args to npm-loader.js, use
+#   RuntimeConnection.for_stdio(...)  or let CopilotClient pick the bundled
+#   runtime. Respect COPILOT_CLI_PATH and COPILOT_CLI_* env vars described in
+#   README to avoid brittle filesystem assumptions.  README documents
+#   COPILOT_CLI_PATH and RuntimeConnection helper methods (README lines ~52–60,
+#   ~214–219).
 
 ### OLD: replaced with PYTHONPATH=
 # import sys
@@ -61,26 +67,27 @@ async def create_new_session():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global copilot_client, copilot_session
-    #  use logged-in user for authentication: use_logged_in_user=True, github_token is not provided here
-    copilot_client = CopilotClient(
+
+    # use logged-in user for authentication: use_logged_in_user=True, github_token is not provided here
+    # Use CopilotClient's async context manager for automatic start/stop/cleanup
+    async with CopilotClient(
         connection=RuntimeConnection.for_stdio(
             path="node",
             args=["/usr/lib/node_modules/@github/copilot/npm-loader.js"]
         ),
         session_idle_timeout_seconds=SESSION_TIMEOUT
-    )
-    await copilot_client.start()
-    copilot_session = await create_new_session()
-    print("--- lifespan: Copilot Client & Session Initialized ---")
-
-    yield
-
-    if copilot_session:
-        try: await copilot_session.disconnect()
-        except: pass
-    if copilot_client:
-        await copilot_client.stop()
-        print("--- lifespan: Copilot Client Stopped ---")
+    ) as client:
+        copilot_client = client
+        # create an initial session (kept for compatibility with existing logic)
+        copilot_session = await create_new_session()
+        print("--- lifespan: Copilot Client & Session Initialized ---")
+        try:
+            yield
+        finally:
+            # clear references; the CopilotClient context manager ensures proper stop
+            copilot_session = None
+            copilot_client = None
+            print("--- lifespan: Copilot Client Stopped ---")
 
 app = FastAPI(lifespan=lifespan)
 
@@ -132,10 +139,16 @@ async def chat_completions(request: dict, background_tasks: BackgroundTasks):
         # Attempt to send with the current session
         response = await copilot_session.send_and_wait(formatted_prompt, timeout=SEND_AND_WAIT_TIMEOUT)
 
-    except (JsonRpcError, ProcessExitedError, Exception) as e:
+    except TimeoutError as e:
+        # Timeouts indicate the session did not become idle in time. This is
+        # usually a slow assistant or long-running work, not a session expiry.
+        # Log and return 504 Gateway Timeout to the client rather than recreating.
+        print(f"--- Session timeout detected: {e} ---")
+        return JSONResponse(status_code=504, content={"error": f"Timeout waiting for session idle: {e}"})
+    except (JsonRpcError, ProcessExitedError) as e:
         # Catch JsonRpcError (which houses the -32603 session not found error)
         # or any other unexpected connection/process drops.
-        print(f"--- Session error detected ({e}), recreating session and retrying... ---")
+        print(f"--- Session error detected ({e}), type ({type(e)}), recreating session and retrying... ---")
         try:
             # 1. Re-create the session
             copilot_session = await create_new_session()
@@ -146,6 +159,10 @@ async def chat_completions(request: dict, background_tasks: BackgroundTasks):
         except Exception as retry_err:
             print(f"--- Retry failed: {retry_err} ---")
             raise retry_err
+
+    except Exception as e:
+        print(f"--- Some error from server: {e} type {type(e)} ---")
+        return JSONResponse(status_code=400, content={"error": f"Error from copilot-cli: {e}"})
 
     assistant_reply = response.data.content if response and response.data else "No response generated."
 
