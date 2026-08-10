@@ -68,9 +68,9 @@ async def create_new_session():
 async def lifespan(app: FastAPI):
     global copilot_client, copilot_session
 
-    # use logged-in user for authentication: use_logged_in_user=True, github_token is not provided here
-    # Use CopilotClient's async context manager for automatic start/stop/cleanup
     try:
+        # use logged-in user for authentication: use_logged_in_user=True, github_token is not provided here
+        # Use CopilotClient's async context manager for automatic start/stop/cleanup
         async with CopilotClient(
             connection=RuntimeConnection.for_stdio(
                 path="node",
@@ -79,18 +79,20 @@ async def lifespan(app: FastAPI):
             session_idle_timeout_seconds=SESSION_TIMEOUT
         ) as client:
             copilot_client = client
-            # create an initial session (kept for compatibility with existing logic)
-            copilot_session = await create_new_session()
-            print("--- lifespan: Copilot Client & Session Initialized ---")
-            try:
-                yield
-            finally:
-                # clear references; the CopilotClient context manager ensures proper stop
-                copilot_session = None
-                copilot_client = None
-                print("--- lifespan: Copilot Client Stopped ---")
-    except* StopError as e:
-        pass
+
+            async with await client.create_session(
+                # on_permission_request=PermissionHandler.approve_all
+            ) as session:
+                copilot_session = session
+                print("--- lifespan: Copilot Client & Global Session Initialized ---")
+                try: yield
+                finally: print("--- lifespan: Cleaning up Global Session ---")
+
+    finally:
+        copilot_session = None
+        copilot_client = None
+        print("--- lifespan: Copilot Client Stopped ---")
+
 
 app = FastAPI(lifespan=lifespan)
 
