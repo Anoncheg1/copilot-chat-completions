@@ -20,6 +20,13 @@ class DummySession:
             data = Data()
         return Response()
 
+    # Provide async context manager protocol to match CopilotClient
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return None
+
     async def disconnect(self):
         return None
 
@@ -28,6 +35,13 @@ class DummyClient:
     def __init__(self, *args, **kwargs):
         # accept any constructor args the real client expects
         pass
+
+    # Provide async context manager protocol to match CopilotClient
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return None
 
     async def start(self):
         return None
