@@ -14,7 +14,14 @@
 
 ### Commentary:
 
-# Usage: PYTHONPATH="/path-to/copilot-sdk/python" uvicorn server:app --host 127.0.0.1 --port 8000 --reload
+# Usage:
+# export GITHUB_TOKEN="xxxxxxxx"
+# export COPILOT_SKIP_CLI_DOWNLOAD=1
+# export COPILOT_CLI_PATH=/usr/bin/copilot
+# export PYTHONPATH="/path-to/copilot-sdk/python"
+# uvicorn server:app --host 127.0.0.1 --port 8000 --reload
+
+# Optionally add COPILOT_SKIP_CLI_DOWNLOAD=1
 
 # Documentation of copilot-sdk: https://github.com/github/copilot-sdk/blob/main/python/README.md
 
@@ -46,9 +53,13 @@ import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.responses import JSONResponse
-from copilot import CopilotClient, RuntimeConnection, StopError
+from copilot import CopilotClient, RuntimeConnection
 from copilot.session import PermissionHandler
 from copilot._jsonrpc import JsonRpcError, ProcessExitedError
+
+cli_path = os.environ.get("COPILOT_CLI_PATH", "copilot")
+
+
 SESSION_TIMEOUT = 1500 # 25 min
 SEND_AND_WAIT_TIMEOUT = 300.0 # secs
 copilot_client = None
@@ -73,8 +84,9 @@ async def lifespan(app: FastAPI):
         # Use CopilotClient's async context manager for automatic start/stop/cleanup
         async with CopilotClient(
             connection=RuntimeConnection.for_stdio(
-                path="node",
-                args=["/usr/lib/node_modules/@github/copilot/npm-loader.js"]
+                # path="node",
+                path=cli_path
+                # args=["/usr/lib/node_modules/@github/copilot/npm-loader.js"]
             ),
             session_idle_timeout_seconds=SESSION_TIMEOUT
         ) as client:

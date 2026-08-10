@@ -70,8 +70,14 @@ pip3.14 install -r requirements.txt
 
 * Usage
 To run:
-: export GITHUB_TOKEN="xxxxxxxx" # fine-grained token with copilot permission
-: PYTHONPATH="/path-to/copilot-sdk/python" uvicorn server:app --host 127.0.0.1 --port 8000 --reload
+#+begin_src bash :eval no :exports code :results none
+export GITHUB_TOKEN="xxxxxxxx" # fine-grained token with copilot permission
+export COPILOT_SKIP_CLI_DOWNLOAD=1
+export COPILOT_CLI_PATH=/usr/bin/copilot # to find this use: $ whereis copilot
+export PYTHONPATH="/path-to/copilot-sdk/python"
+uvicorn server:app --host 127.0.0.1 --port 8000 --reload
+#+end_src
+
 To Test:
 #+begin_src bash :eval no :exports code :results none
 
