@@ -99,7 +99,7 @@ async def test_chat_completions_success():
 async def test_chat_completions_retry_on_error():
     # initial session raises; create_new_session returns a working session
     server.copilot_session = RaisingSession()
-    async def make_new(): return FakeSession("retried-reply")
+    async def make_new(copilot_client): return FakeSession("retried-reply")
     server.create_new_session = make_new
     request = {"messages": [{"role": "user", "content": "Hi again"}]}
     resp = await server.chat_completions(request, None)

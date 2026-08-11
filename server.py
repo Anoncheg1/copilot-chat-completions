@@ -86,18 +86,14 @@ async def connect():
     print("connect token:", token)
     # use logged-in user for authentication: use_logged_in_user=True, github_token is not provided here
     # Use CopilotClient's async context manager for automatic start/stop/cleanup
-    try:
-        copilot_client = CopilotClient(
+    copilot_client = CopilotClient(
             github_token=token,
             connection=RuntimeConnection.for_stdio(
                 path=CLI_PATH
             ),
             session_idle_timeout_seconds=SESSION_TIMEOUT
-        )
-    except TypeError:
-        # Some test fakes (DummyCopilotClient) don't accept constructor args.
-        # Fall back to zero-arg construction for compatibility.
-        copilot_client = CopilotClient()
+    )
+
     await copilot_client.start()
 
     copilot_session = await create_new_session(copilot_client)
