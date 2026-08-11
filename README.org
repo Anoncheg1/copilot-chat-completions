@@ -71,7 +71,7 @@ pip3.14 install -r requirements.txt
 * Usage
 To run:
 #+begin_src bash :eval no :exports code :results none
-export GITHUB_TOKEN="xxxxxxxx" # fine-grained token with copilot permission
+export GITHUB_TOKEN="xxxxxxxx" # or TOKENS_POOL="xx1,xx2,xx3" # fine-grained token with copilot permission
 export COPILOT_SKIP_CLI_DOWNLOAD=1
 export COPILOT_CLI_PATH=/usr/bin/copilot # to find this use: $ whereis copilot
 export PYTHONPATH="/path-to/copilot-sdk/python"
