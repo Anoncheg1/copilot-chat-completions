@@ -71,7 +71,7 @@ token_iter = iter(tokens) if tokens else None
 token = next(token_iter, None) if token_iter else None
 
 
-async def create_new_session():
+async def create_new_session(copilot_client):
     return await copilot_client.create_session(
         model="gpt-5-mini",
         # reasoning_effort="high",
@@ -100,9 +100,7 @@ async def connect():
         copilot_client = CopilotClient()
     await copilot_client.start()
 
-    copilot_session = await copilot_client.create_session(
-        # on_permission_request=PermissionHandler.approve_all
-    )
+    copilot_session = await create_new_session(copilot_client)
 
     print("--- Copilot Client & Global Session Initialized ---")
 

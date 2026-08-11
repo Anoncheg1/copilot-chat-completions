@@ -6,6 +6,7 @@ You unly need `server.py` here and follow instructions for installation of copil
 
 Copilot Free quotes: 50 premium requests per month
 
+“All permissions are granted” in ~create_new_session(client)~ function in server.py by default.
 * Dependencies
 - *GitHub Copilot CLI* - proprietary binary executable
 - https://github.com/github/copilot-sdk - MIT Licensed
