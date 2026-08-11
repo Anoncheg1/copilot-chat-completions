@@ -1,5 +1,4 @@
 [[https://github.com/Anoncheg1/emacs-cui/workflows/CI/badge.svg]]
-[[https://github.com/Anoncheg1/emacs-cui/workflows/melpazoid-release/badge.svg]]
 
 * copilot-chat-completions is a script to provide good old OpenAI-like REST stateless chat user interface to LLMs
 You unly need `server.py` here and follow instructions for installation of copilot and copilot-sdk below.
