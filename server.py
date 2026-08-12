@@ -50,6 +50,7 @@
 # sys.path.insert(0, SDK_PATH)
 import os
 import time
+from itertools import cycle
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.responses import JSONResponse
@@ -66,7 +67,7 @@ messages_saved = None # string or list
 
 # used in CopilotClient()
 tokens = [t.strip() for t in os.environ.get("TOKENS_POOL", "").split(",") if t.strip()]
-token_iter = iter(tokens) if tokens else None
+token_iter = cycle(tokens) if tokens else None # iter(tokens)
 
 token = next(token_iter, None) if token_iter else None
 

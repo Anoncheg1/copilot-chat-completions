@@ -70,6 +70,15 @@ cat requirements.txt
 pip3.14 install -r requirements.txt
 #+end_src
 
+* Token
+You need fine-grainded token with permission to "copilot chat" and enabled Copilot in settings->Copilot->Features.
+
+For single token use: ~COPILOT_GITHUB_TOKEN~ or ~GH_TOKEN~ or ~GITHUB_TOKEN~.
+
+Or you set multiple tokens with: ~TOKENS_POOL~ evironmental variable by separating them with (,): ~xx1,xx2,xx3~.
+
+~TOKENS_POOL~ works like a loop over tokens until one will work.
+
 * Usage
 To run:
 #+begin_src bash :eval no :exports code :results none
