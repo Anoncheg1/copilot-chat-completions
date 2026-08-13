@@ -36,18 +36,6 @@
 
 ### TODO:
 # - use ‎CopilotClient.ping to keep connection
-# - hardcoded "/usr/lib/node_modules/@github/copilot/npm-loader.js". Instead of
-#   hardcoding path="node" and args to npm-loader.js, use
-#   RuntimeConnection.for_stdio(...)  or let CopilotClient pick the bundled
-#   runtime. Respect COPILOT_CLI_PATH and COPILOT_CLI_* env vars described in
-#   README to avoid brittle filesystem assumptions.  README documents
-#   COPILOT_CLI_PATH and RuntimeConnection helper methods (README lines ~52–60,
-#   ~214–219).
-
-### OLD: replaced with PYTHONPATH=
-# import sys
-# SDK_PATH = "/home/rtorrent/copilot-sdk/python"
-# sys.path.insert(0, SDK_PATH)
 import os
 import time
 from itertools import cycle
