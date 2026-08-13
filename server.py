@@ -183,17 +183,16 @@ async def chat_completions(request: dict, background_tasks: BackgroundTasks):
         # Catch JsonRpcError (which houses the -32603 session not found error)
         # or any other unexpected connection/process drops.
         print(f"--- Session error detected ({e}), type ({type(e)}), recreating session and retrying... ---")
-        # case for: "Error from copilot-cli: Session error: You have exceeded your monthly quota"
+        if type(e) is Exception and "quota" in str(e).lower(): # case for: "Error from copilot-cli: Session error: You have exceeded your monthly quota"
+            # 1. Rotate Token if we have pool
+            if token_iter:
+                token = next(token_iter, None)
+
         if type(e) is Exception and not("quota" in str(e).lower()):
             print(f"--- Some error from server: {e} ---")
             return JSONResponse(status_code=400, content={"error": f"Error from copilot-cli: {e}"})
         else:
             try:
-                # 1. Rotate Token if we have pool
-                if token_iter:
-                    token = next(token_iter, None)
-                # print("try token2:", token)
-
                 # 2. Re-create the session and client to use token
                 await rotate_session()
 

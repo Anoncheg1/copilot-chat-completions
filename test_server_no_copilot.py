@@ -84,7 +84,7 @@ class FakeSession:
 
 class RaisingSession:
     async def send_and_wait(self, *a, **k):
-        raise rpc_mod.JsonRpcError("simulated")
+        raise Exception("You have exceeded your monthly quota")
     async def disconnect(self): pass
 
 @pytest.mark.asyncio
